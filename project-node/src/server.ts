@@ -1,68 +1,81 @@
 // Import modul http dari Node.js
 import * as http from 'http';
 
-// Tentukan port yang akan digunakan
 const PORT = 3000;
 
-// Buat server HTTP
+// Data statis
+const users = [
+  { id: 1, name: "Adhelia" },
+  { id: 2, name: "Issabel" }
+];
+
+const products = [
+  { id: 1, name: "Laptop" },
+  { id: 2, name: "Mouse" }
+];
+
+// Middleware sederhana (logger + hitung waktu)
 const server = http.createServer((req, res) => {
-  // Ambil URL dan metode HTTP dari objek request
-  // Jika req.url undefined, gunakan '/' sebagai default
+  const startTime = Date.now(); // mulai hitung waktu
+
   const url = req.url || '/';
   const method = req.method || 'GET';
 
-  // Tampilkan log di terminal (untuk debugging)
   console.log(`[${new Date().toLocaleTimeString()}] ${method} ${url}`);
 
-  // --- ROUTING MANUAL DENGAN PERCABANGAN ---
+  // Helper untuk kirim response JSON
+  const sendJSON = (statusCode, data) => {
+    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(data));
 
-  // Rute: GET /
-  if (url === '/' && method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({message:"Selamat datang dihalaman Home Semuanya!!!"}));
+    // Hitung lama eksekusi
+    const endTime = Date.now();
+    console.log(`⏱ Waktu eksekusi: ${endTime - startTime} ms\n`);
+  };
+
+  // ================= ROUTING =================
+
+  // GET /
+  if (url === "/" && method === "GET") {
+    return sendJSON(200, { message: "Selamat datang di halaman Home!" });
   }
 
-  // Rute: GET /about
-  else if (url === '/about' && method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({message:"Halaman About"}));
+  // GET /about
+  if (url === "/about" && method === "GET") {
+    return sendJSON(200, { message: "Halaman About" });
   }
 
-  // Rute: GET /api/users
-  else if (url?.startsWith("/users/") && method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify([
-      { id: 1, name: 'Adhelia' },
-      { id: 2, name: 'Issabel' }
-    ]));
+  // GET /products
+  if (url === "/products" && method === "GET") {
+    return sendJSON(200, products);
   }
 
-  // Rute: POST /api/users
-  else if (url === '/api/users' && method === 'POST') {
-    res.writeHead(201, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: 'User berhasil dibuat (contoh)' }));
-  }
-
-  // Rute: GET PRODUCTS/
-  else if (url === '/products' && method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify([
-        { id: 1, name: 'Laptop' },
-        { id: 2, name: 'Mouse' }
-    ]));
-  }
-  
   // POST /products
-  else if (url === "/products" && method === "POST") {
-    res.writeHead(201, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "Produk berhasil dibuat (simulasi)" }));
+  if (url === "/products" && method === "POST") {
+    return sendJSON(201, { message: "Produk berhasil dibuat (simulasi)" });
   }
 
-  // Jika tidak ada rute yang cocok → 404
-  else {
-    res.writeHead(201, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: 'Router tidak ditemukan' }));
+  // GET /users/:id  (PARAMETER DINAMIS)
+  if (url.startsWith("/users/") && method === "GET") {
+    const parts = url.split("/");
+    const id = parseInt(parts[2]);
+
+    const user = users.find(u => u.id === id);
+
+    if (user) {
+      return sendJSON(200, user);
+    } else {
+      return sendJSON(404, { message: "User tidak ditemukan" });
+    }
   }
+
+  // POST /users
+  if (url === "/users" && method === "POST") {
+    return sendJSON(201, { message: "User berhasil dibuat (simulasi)" });
+  }
+
+  // 404 Not Found
+  return sendJSON(404, { message: "Route tidak ditemukan" });
 
 });
 

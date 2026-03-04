@@ -43,11 +43,27 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ message: 'User berhasil dibuat (contoh)' }));
   }
 
+  // Rute: GET PRODUCTS/
+  else if (url === '/products' && method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify([
+        { id: 1, name: 'Laptop' },
+        { id: 2, name: 'Mouse' }
+    ]));
+  }
+  
+  // POST /products
+  else if (url === "/products" && method === "POST") {
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ message: "Produk berhasil dibuat (simulasi)" }));
+  }
+
   // Jika tidak ada rute yang cocok → 404
   else {
     res.writeHead(201, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'Router tidak ditemukan' }));
   }
+
 });
 
 // Jalankan server
